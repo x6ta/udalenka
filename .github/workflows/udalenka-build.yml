@@ -1,0 +1,147 @@
+name: Сборка Удалёнки
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  RUST_VERSION: "1.75"
+  FLUTTER_VERSION: "3.24.5"
+  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
+
+jobs:
+
+  build-linux:
+    name: Linux x86_64
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++ gcc git curl wget nasm yasm \
+            libgtk-3-dev clang libxcb-randr0-dev libxdo-dev \
+            libxfixes-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libasound2-dev libpulse-dev cmake \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+            libpam0g-dev libappindicator3-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install vcpkg
+        uses: nicol-ograve/vcpkg-action@v6
+        with:
+          pkgs: libvpx libyuv opus aom
+          triplet: x64-linux
+          revision: ${{ env.VCPKG_COMMIT_ID }}
+
+      - name: Build Flutter Linux
+        run: |
+          pushd flutter
+          flutter build linux --release
+          popd
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cp -r flutter/build/linux/x64/release/bundle release/udalenka-linux-x64
+          cd release && tar czf udalenka-linux-x64.tar.gz udalenka-linux-x64/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: udalenka-linux-x64
+          path: release/udalenka-linux-x64.tar.gz
+
+  build-windows:
+    name: Windows x86_64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install vcpkg
+        uses: nicol-ograve/vcpkg-action@v6
+        with:
+          pkgs: libvpx libyuv opus aom
+          triplet: x64-windows-static
+          revision: ${{ env.VCPKG_COMMIT_ID }}
+
+      - name: Install LLVM and NASM
+        run: |
+          choco install -y llvm nasm
+          echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build Flutter Windows
+        run: |
+          cd flutter
+          flutter build windows --release
+
+      - name: Package
+        run: |
+          mkdir release
+          Copy-Item -Recurse flutter\build\windows\x64\runner\Release release\udalenka-windows-x64
+          Compress-Archive -Path release\udalenka-windows-x64 -DestinationPath release\udalenka-windows-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: udalenka-windows-x64
+          path: release/udalenka-windows-x64.zip
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Удалёнка ${{ github.ref_name }}"
+          body: |
+            ## Удалёнка ${{ github.ref_name }}
+            
+            Бесплатный удалённый доступ к рабочему столу.
+            
+            ### Скачать:
+            - **Windows:** `udalenka-windows-x64.zip`
+            - **Linux:** `udalenka-linux-x64.tar.gz`
+            
+            ### Настройка:
+            Сервер уже встроен в клиент. Просто установите и используйте!
+          files: |
+            udalenka-linux-x64/udalenka-linux-x64.tar.gz
+            udalenka-windows-x64/udalenka-windows-x64.zip

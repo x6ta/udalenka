@@ -2,7 +2,7 @@
 #include "my_application.h"
 
 #define RUSTDESK_LIB_PATH "librustdesk.so"
-typedef bool (*RustDeskCoreMain)();
+typedef bool (*УдалёнкаCoreMain)();
 bool gIsConnectionManager = false;
 
 void print_help_install_pkg(const char* so);
@@ -24,7 +24,7 @@ bool flutter_rustdesk_core_main() {
       }
      return false;
    }
-   auto core_main = (RustDeskCoreMain) dlsym(librustdesk,"rustdesk_core_main");
+   auto core_main = (УдалёнкаCoreMain) dlsym(librustdesk,"rustdesk_core_main");
    char* error;
    if ((error = dlerror()) != nullptr) {
        fprintf(stderr, "Program entry \"rustdesk_core_main\" is not found: %s\n", error);
