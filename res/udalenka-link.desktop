@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Удалёнка
+NoDisplay=true
+MimeType=x-scheme-handler/udalenka;
+TryExec=udalenka
+Exec=udalenka %u
+Icon=udalenka
+Terminal=false
+Type=Application
+StartupNotify=false
+StartupWMClass=udalenka
