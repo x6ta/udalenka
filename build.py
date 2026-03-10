@@ -330,7 +330,7 @@ def build_flutter_deb(version, features):
     system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
-    system2('rm tmpdeb/usr/bin/rustdesk || true')
+    system2('rm tmpdeb/usr/bin/rustdesk tmpdeb/usr/bin/udalenka || true')
     system2(
         f'cp -r {flutter_build_dir}/* tmpdeb/usr/share/udalenka/')
     system2(
@@ -373,7 +373,7 @@ def build_deb_from_folder(version, binary_folder):
     system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
-    system2('rm tmpdeb/usr/bin/rustdesk || true')
+    system2('rm tmpdeb/usr/bin/rustdesk tmpdeb/usr/bin/udalenka || true')
     system2(
         f'cp -r ../{binary_folder}/* tmpdeb/usr/share/udalenka/')
     system2(
