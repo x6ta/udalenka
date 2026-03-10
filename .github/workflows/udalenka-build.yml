@@ -14,13 +14,23 @@ env:
 
 jobs:
 
+  generate-bridge:
+    uses: ./.github/workflows/bridge.yml
+
   build-linux:
     name: Linux x86_64
+    needs: [generate-bridge]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+          name: bridge-artifact
+          path: ./
 
       - name: Install dependencies
         run: |
@@ -93,11 +103,18 @@ jobs:
 
   build-windows:
     name: Windows x86_64
+    needs: [generate-bridge]
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Restore bridge files
+        uses: actions/download-artifact@master
+        with:
+          name: bridge-artifact
+          path: ./
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -123,8 +140,22 @@ jobs:
           doNotCache: false
 
       - name: Install vcpkg dependencies
+        env:
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-windows-static
         run: |
-          $VCPKG_ROOT/vcpkg install --triplet x64-windows-static --x-install-root="$VCPKG_ROOT/installed"
+          if ! $VCPKG_ROOT/vcpkg \
+            install \
+            --triplet x64-windows-static \
+            --x-install-root="$VCPKG_ROOT/installed"; then
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"
+              echo "======"
+              cat "$_1"
+              echo "======"
+              echo ""
+            done
+            exit 1
+          fi
         shell: bash
 
       - name: Setup LLVM
