@@ -1,6 +1,6 @@
 name: Flutter Nightly Build
 
-on:
+on: { workflow_dispatch: { inputs: { __disabled: { type: boolean } } } } #original:
   schedule:
     # schedule build every night
     - cron: "0 0 * * *"

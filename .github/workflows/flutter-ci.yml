@@ -1,6 +1,6 @@
 name: Full Flutter CI
 
-on:
+on: { workflow_dispatch: { inputs: { __disabled: { type: boolean } } } } #original:
   workflow_dispatch:
   pull_request:
     paths-ignore:

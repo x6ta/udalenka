@@ -30,8 +30,8 @@ jobs:
             libgtk-3-dev clang libxcb-randr0-dev libxdo-dev \
             libxfixes-dev libxcb-shape0-dev libxcb-xfixes0-dev \
             libasound2-dev libpulse-dev cmake make \
-            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
             libpam0g-dev libappindicator3-dev \
+            libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
             pkg-config ninja-build
 
       - name: Install Rust
@@ -128,7 +128,7 @@ jobs:
         shell: bash
 
       - name: Install LLVM
-        run: choco install -y llvm --version=15.0.6
+        run: choco install -y llvm --version=15.0.6 --allow-downgrade --force
 
       - name: Install NASM
         run: |
