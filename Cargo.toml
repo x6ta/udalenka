@@ -5,7 +5,7 @@ authors = ["rustdesk <info@rustdesk.com>"]
 edition = "2021"
 build= "build.rs"
 description = "Удалёнка — бесплатный удалённый доступ к рабочему столу"
-default-run = "rustdesk"
+default-run = "udalenka"
 rust-version = "1.75"
 
 [lib]
